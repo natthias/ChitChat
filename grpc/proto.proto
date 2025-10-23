@@ -7,6 +7,13 @@ message Clients {
 
 message Empty {}
 
+message ClientBroadcast {
+    optional string client = 1;
+}
+
 service ChitChatClients {
     rpc GetClients (Empty) returns (Clients) {};
+    rpc JoinServer (Empty) returns (Message) {};
 }
+
+
