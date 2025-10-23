@@ -1,19 +1,37 @@
 syntax = "proto3";
 option go_package = "ChitChat/grpc/proto";
 
-message Clients {
+message ClientList {
     repeated string clients = 1;
 }
 
 message Empty {}
 
-message ClientBroadcast {
-    optional string client = 1;
+
+service ChitChat {
+    rpc JoinServer(JoinServerRequest) returns (Empty){}
+    rpc LeaveServer(LeaveServerRequest) returns (Empty){}
+    rpc PublishMessage(ChatMessage) returns (Empty){}
+    rpc ReceiveMessages(ReceiveMessagesRequest) returns (stream ChatMessage){}
+
+}
+ 
+message ChatMessage{
+    string sender = 1;
+    string message = 2;
+    uint64 timestamp = 3;
 }
 
-service ChitChatClients {
-    rpc GetClients (Empty) returns (Clients) {};
-    rpc JoinServer (Empty) returns (Message) {};
+message JoinServerRequest {
+    string username = 1;
+    uint64 timestamp = 2;
 }
 
+message LeaveServerRequest {
+    string username = 1;
+    uint64 timestamp = 2;
+}
 
+message ReceiveMessagesRequest {
+    string username = 1;
+}
