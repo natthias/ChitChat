@@ -1,4 +1,12 @@
 syntax = "proto3";
 option go_package = "ChitChat/grpc/proto";
 
+message Clients {
+    repeated string clients = 1;
+}
+
 message Empty {}
+
+service ChitChatClients {
+    rpc GetClients (Empty) returns (Clients) {};
+}
