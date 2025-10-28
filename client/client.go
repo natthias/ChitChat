@@ -16,10 +16,13 @@ import (
 
 func main() {
 	// --- config ---
+	var clock uint64 = 0
 	serverAddr := "localhost:6969"
-	user := "alice"
+	var user string
 	if len(os.Args) > 1 {
 		user = os.Args[1]
+	} else {
+		log.Fatalf("Invalid username")
 	}
 
 	// --- dial ---
@@ -34,7 +37,8 @@ func main() {
 	defer cancel()
 
 	// --- join ---
-	if _, err := c.JoinServer(ctx, &pb.JoinServerRequest{Username: user}); err != nil {
+	clock++
+	if _, err := c.JoinServer(ctx, &pb.JoinServerRequest{Username: user, Timestamp: clock}); err != nil {
 		log.Fatalf("join: %v", err)
 	}
 	log.Printf("joined as %s", user)
@@ -51,7 +55,8 @@ func main() {
 				log.Printf("recv closed: %v", err)
 				return
 			}
-			fmt.Printf("[%d] %s: %s\n", m.Timestamp, m.Sender, m.Message)
+			clock = max(clock, m.Timestamp) + 1
+			fmt.Printf("[%d] %s: %s\n", clock, m.Sender, m.Message)
 		}
 	}()
 
@@ -60,7 +65,8 @@ func main() {
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-sig
-		_, _ = c.LeaveServer(context.Background(), &pb.LeaveServerRequest{Username: user})
+		clock++
+		_, _ = c.LeaveServer(context.Background(), &pb.LeaveServerRequest{Username: user, Timestamp: clock})
 		os.Exit(0)
 	}()
 
@@ -69,10 +75,11 @@ func main() {
 	fmt.Println("type messages and press Enter; Ctrl-C to quit")
 	for sc.Scan() {
 		text := sc.Text()
-		if text == "" {
+		if text == "" || len(text) > 128 {
 			continue
 		}
-		_, err := c.PublishMessage(ctx, &pb.ChatMessage{Sender: user, Message: text})
+		clock++
+		_, err := c.PublishMessage(ctx, &pb.ChatMessage{Sender: user, Message: text, Timestamp: clock})
 		if err != nil {
 			log.Printf("publish: %v", err)
 		}

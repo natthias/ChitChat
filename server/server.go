@@ -58,12 +58,12 @@ func (s *ChitChatServer) JoinServer(ctx context.Context, req *proto.JoinServerRe
 	s.clients[req.Username] = ch
 
 	// Increment the Lamport clock.
-	s.clock++
+	s.clock = max(s.clock, req.Timestamp) + 1
 
 	// Broadcast a “user joined” message to all clients.
 	joinMsg := &proto.ChatMessage{
 		Sender:    "Server",
-		Message:   fmt.Sprintf("%s joined Chat at logical time %d", req.Username, s.clock),
+		Message:   fmt.Sprintf("%s joined Chat", req.Username),
 		Timestamp: s.clock,
 	}
 	for _, clientCh := range s.clients {
@@ -88,7 +88,7 @@ func (s *ChitChatServer) LeaveServer(ctx context.Context, req *proto.LeaveServer
 	close(ch)
 
 	// Increment the Lamport clock.
-	s.clock++
+	s.clock = max(s.clock, req.Timestamp) + 1
 
 	// Broadcast a “user left” message to the remaining clients.
 	leaveMsg := &proto.ChatMessage{
@@ -110,7 +110,7 @@ func (s *ChitChatServer) PublishMessage(ctx context.Context, msg *proto.ChatMess
 	defer s.mu.Unlock()
 
 	// Increment the Lamport clock and stamp the message.
-	s.clock++
+	s.clock = max(s.clock, msg.Timestamp) + 1
 	msg.Timestamp = s.clock
 
 	// Fan the message out to all client channels.
@@ -139,6 +139,8 @@ func (s *ChitChatServer) ReceiveMessages(req *proto.ReceiveMessagesRequest, stre
 
 	// Read from the client's channel and stream messages back.
 	for msg := range ch {
+		s.clock++
+		msg.Timestamp = s.clock
 		if err := stream.Send(msg); err != nil {
 			return err
 		}
