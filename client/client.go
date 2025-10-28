@@ -18,10 +18,10 @@ func main() {
 	// --- config ---
 	var clock uint64 = 0
 	serverAddr := "localhost:6969"
-	var user string
+	user := ""
 	if len(os.Args) > 1 {
 		user = os.Args[1]
-	} else {
+	} else if user == "" {
 		log.Fatalf("Invalid username")
 	}
 
@@ -56,7 +56,7 @@ func main() {
 				return
 			}
 			clock = max(clock, m.Timestamp) + 1
-			fmt.Printf("[%d] %s: %s\n", clock, m.Sender, m.Message)
+			fmt.Printf("%s: %s, lt=%d\n", m.Sender, m.Message, clock)
 		}
 	}()
 
