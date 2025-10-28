@@ -93,7 +93,7 @@ func (s *ChitChatServer) LeaveServer(ctx context.Context, req *proto.LeaveServer
 	// Broadcast a “user left” message to the remaining clients.
 	leaveMsg := &proto.ChatMessage{
 		Sender:    "Server",
-		Message:   fmt.Sprintf("%s left Chat at logical time %d", req.Username, s.clock),
+		Message:   fmt.Sprintf("%s left Chat", req.Username),
 		Timestamp: s.clock,
 	}
 	for _, clientCh := range s.clients {
@@ -122,7 +122,7 @@ func (s *ChitChatServer) PublishMessage(ctx context.Context, msg *proto.ChatMess
 			// Optional: drop or log if a client's buffer is full.
 		}
 	}
-	log.Printf("[Server] publish: from=%s lt=%d len=%d", msg.Sender, s.clock, len(msg.Message))
+	log.Printf("[Server] publish (%s): from=%s lt=%d", msg.Sender, msg.Message, s.clock)
 
 	return &proto.Empty{}, nil
 }
