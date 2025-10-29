@@ -20,7 +20,7 @@ type ChitChatServer struct {
 
 func main() {
 	server := ChitChatServer{clients: make(map[string]chan *proto.ChatMessage)}
-	log.Print("ChitChat server has been initiated 🚀")
+	log.Print("ChitChat server has been initiated")
 
 	server.start_server()
 }
