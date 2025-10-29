@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	// --- config ---
+	// config
 	var clock uint64 = 0
 	serverAddr := "localhost:6969"
 	user := ""
@@ -25,7 +25,7 @@ func main() {
 		log.Fatalf("Invalid username")
 	}
 
-	// --- dial ---
+	// dial
 	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("dial: %v", err)
@@ -36,14 +36,14 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// --- join ---
+	// join
 	clock++
 	if _, err := c.JoinServer(ctx, &pb.JoinServerRequest{Username: user, Timestamp: clock}); err != nil {
 		log.Fatalf("join: %v", err)
 	}
 	log.Printf("joined as %s", user)
 
-	// --- receive in background ---
+	// receive in background
 	stream, err := c.ReceiveMessages(ctx, &pb.ReceiveMessagesRequest{Username: user})
 	if err != nil {
 		log.Fatalf("receive: %v", err)
@@ -60,7 +60,7 @@ func main() {
 		}
 	}()
 
-	// --- handle Ctrl-C to leave ---
+	// handle Ctrl-C to leave
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -70,7 +70,7 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// --- read stdin and publish ---
+	// read stdin and publish
 	sc := bufio.NewScanner(os.Stdin)
 	fmt.Println("type messages and press Enter; Ctrl-C to quit")
 	for sc.Scan() {
@@ -84,6 +84,4 @@ func main() {
 			log.Printf("publish: %v", err)
 		}
 	}
-	// optional: leave on EOF (e.g., piped input)
-	_, _ = c.LeaveServer(context.Background(), &pb.LeaveServerRequest{Username: user})
 }

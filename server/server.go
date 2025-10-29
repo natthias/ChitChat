@@ -23,7 +23,6 @@ func main() {
 	log.Print("ChitChat server has been initiated 🚀")
 
 	server.start_server()
-	log.Print("ChitChat server has terminated 🪿")
 }
 
 func (s *ChitChatServer) start_server() {
